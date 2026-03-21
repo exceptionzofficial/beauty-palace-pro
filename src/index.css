@@ -2,55 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 30 10% 15%;
+    --background: 0 0% 99%;
+    --foreground: 0 0% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 10% 15%;
+    --card-foreground: 0 0% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 15%;
+    --popover-foreground: 0 0% 12%;
 
-    --primary: 36 60% 48%;
+    /* Cherry Red */
+    --primary: 350 72% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 30% 93%;
-    --secondary-foreground: 30 10% 25%;
+    /* Rose Gold light */
+    --secondary: 15 30% 94%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 35 20% 94%;
-    --muted-foreground: 30 8% 50%;
+    --muted: 20 15% 95%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 36 45% 90%;
-    --accent-foreground: 30 10% 20%;
+    /* Rose Gold accent */
+    --accent: 15 45% 88%;
+    --accent-foreground: 0 0% 15%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 20% 88%;
-    --input: 35 20% 88%;
-    --ring: 36 60% 48%;
+    --border: 20 15% 90%;
+    --input: 20 15% 90%;
+    --ring: 350 72% 48%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 35 25% 96%;
-    --sidebar-foreground: 30 10% 25%;
-    --sidebar-primary: 36 60% 48%;
+    /* Custom palette */
+    --cherry: 350 72% 48%;
+    --cherry-light: 350 60% 92%;
+    --cherry-dark: 350 65% 38%;
+    --rose-gold: 15 45% 65%;
+    --rose-gold-light: 15 35% 92%;
+    --rose-gold-dark: 15 40% 50%;
+    --cream: 30 30% 97%;
+    --salon-dark: 350 30% 10%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-primary: 350 72% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 30% 92%;
-    --sidebar-accent-foreground: 30 10% 20%;
-    --sidebar-border: 35 20% 88%;
-    --sidebar-ring: 36 60% 48%;
-
-    --gold: 36 60% 48%;
-    --gold-light: 36 45% 90%;
-    --gold-dark: 36 55% 38%;
-    --beige: 35 30% 93%;
-    --beige-dark: 30 15% 80%;
-    --salon-dark: 30 15% 12%;
+    --sidebar-accent: 15 35% 92%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 20 15% 90%;
+    --sidebar-ring: 350 72% 48%;
   }
 }
 
@@ -63,16 +69,59 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
   h1, h2, h3, h4 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
   }
   .font-body {
     font-family: 'Inter', sans-serif;
+  }
+  .text-cherry {
+    color: hsl(var(--cherry));
+  }
+  .bg-cherry {
+    background-color: hsl(var(--cherry));
+  }
+  .bg-cherry-light {
+    background-color: hsl(var(--cherry-light));
+  }
+  .text-rose-gold {
+    color: hsl(var(--rose-gold));
+  }
+  .bg-rose-gold {
+    background-color: hsl(var(--rose-gold));
+  }
+  .bg-rose-gold-light {
+    background-color: hsl(var(--rose-gold-light));
+  }
+  .bg-cream {
+    background-color: hsl(var(--cream));
+  }
+  .bg-salon-dark {
+    background-color: hsl(var(--salon-dark));
+  }
+  .text-salon-dark {
+    color: hsl(var(--salon-dark));
+  }
+  .border-rose-gold {
+    border-color: hsl(var(--rose-gold-light));
+  }
+  .shadow-glow {
+    box-shadow: 0 4px 24px -4px hsla(350, 72%, 48%, 0.12), 0 1px 4px hsla(15, 45%, 65%, 0.08);
+  }
+  .shadow-glow-lg {
+    box-shadow: 0 8px 40px -8px hsla(350, 72%, 48%, 0.18), 0 2px 8px hsla(15, 45%, 65%, 0.1);
+  }
+  .gradient-cherry {
+    background: linear-gradient(135deg, hsl(350, 72%, 48%), hsl(15, 45%, 65%));
+  }
+  .gradient-rose {
+    background: linear-gradient(135deg, hsl(15, 45%, 65%), hsl(350, 60%, 70%));
   }
 }
 
