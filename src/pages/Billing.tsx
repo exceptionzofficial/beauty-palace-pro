@@ -23,6 +23,8 @@ export default function Billing() {
     return [...services, ...custom];
   }, []);
 
+  const categories = useMemo(() => [...defaultCategories, ...getCustomCategories()], []);
+
   const filtered = useMemo(() => {
     let list = allServices;
     if (category !== "All") list = list.filter((s) => s.category === category);
