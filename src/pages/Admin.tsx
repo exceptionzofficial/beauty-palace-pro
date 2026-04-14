@@ -75,6 +75,7 @@ export default function AdminPage() {
 function ServicesTab() {
   const [customServices, setCustomServices] = useState<Service[]>(getCustomServices());
   const [customCats, setCustomCats] = useState<string[]>(getCustomCategories());
+  const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(() => JSON.parse(localStorage.getItem("bp_hidden_defaults") || "[]"));
   const allCategories = useMemo(() => [...defaultCategories, ...customCats], [customCats]);
   const allServices = useMemo(() => [...defaultServices.filter(s => !hiddenDefaults.includes(s.id)), ...customServices], [customServices, hiddenDefaults]);
   const [editId, setEditId] = useState<string | null>(null);
