@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { CartItem, InvoiceData } from "@/data/services";
 import { saveInvoice, generateWhatsAppLink } from "@/lib/store";
 import { X, Printer, Download, MessageCircle, Check } from "lucide-react";
-import logo from "@/assets/logo.jpg";
 
 interface Props {
   customerName: string;
@@ -21,31 +20,34 @@ interface Props {
 
 const thermalPrintCSS = `
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Arial',sans-serif;color:#000;background:#fff;width:72mm;margin:0 auto;padding:2mm 1mm 4mm 1mm;font-size:10px;line-height:1.3}
+body{font-family:'Arial',sans-serif;color:#000;background:#fff;width:72mm;margin:0 auto;padding:1mm 1mm 2mm 1mm;font-size:10px;line-height:1.3}
 .invoice-box{width:100%}
-.header{text-align:center;padding-bottom:3mm;border-bottom:1px dashed #000}
-.logo{width:18mm;height:18mm;border-radius:50%;object-fit:cover;display:block;margin:0 auto 2mm auto;border:1px solid #666}
+.header{text-align:center;padding-bottom:2mm;border-bottom:1px dashed #000}
 .brand h1{font-size:14px;font-weight:700;margin:0;letter-spacing:0.5px}
-.brand p{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;margin:1mm 0 0 0;color:#444}
+.brand p{font-size:7px;letter-spacing:1px;margin:1mm 0 0 0;color:#444}
 .meta{margin:2mm 0;font-size:9px;border-bottom:1px dashed #000;padding-bottom:2mm}
 .meta div{margin:0.5mm 0}
 .meta span{color:#666}
-table{width:100%;border-collapse:collapse;margin:2mm 0;font-size:9px}
-th{padding:1mm 0;text-align:left;font-size:8px;text-transform:uppercase;font-weight:700;border-bottom:1px solid #000;border-top:1px solid #000}
-th:last-child,td:last-child{text-align:right}
-th:nth-child(2),td:nth-child(2){text-align:center;width:8mm}
-th:nth-child(3),td:nth-child(3){text-align:right;width:14mm}
-td{padding:1mm 0;border-bottom:1px dotted #ccc;font-size:9px}
+table{width:100%;border-collapse:collapse;margin:2mm 0;font-size:9px;table-layout:fixed}
+th{padding:1mm 0;text-align:left;font-size:7px;text-transform:uppercase;font-weight:700;border-bottom:1px solid #000;border-top:1px solid #000}
+th:nth-child(1){width:40%}
+th:nth-child(2){width:12%;text-align:center}
+th:nth-child(3){width:22%;text-align:right}
+th:nth-child(4){width:26%;text-align:right}
+td{padding:0.8mm 0;border-bottom:1px dotted #ccc;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td:nth-child(2){text-align:center}
+td:nth-child(3){text-align:right}
+td:nth-child(4){text-align:right}
 .text-right{text-align:right}
-.totals{text-align:right;margin:2mm 0;font-size:9px;border-top:1px dashed #000;padding-top:2mm}
-.totals div{margin:0.5mm 0}
+.totals{text-align:right;margin:1.5mm 0;font-size:9px;border-top:1px dashed #000;padding-top:1.5mm}
+.totals div{margin:0.3mm 0}
 .totals .label{color:#666}
-.totals .grand{font-size:13px;font-weight:700;margin-top:1mm;padding-top:1.5mm;border-top:1px solid #000}
-.savings{text-align:center;font-size:8px;font-weight:600;margin:1.5mm 0;padding:1mm;border:1px dashed #000}
-.footer{text-align:center;padding-top:2mm;border-top:1px dashed #000;margin-top:2mm}
-.footer p{font-size:8px;color:#666;margin:0.5mm 0}
-.footer .thanks{font-size:10px;color:#000;font-weight:700}
-@media print{@page{size:80mm auto;margin:0}body{width:72mm;padding:2mm 1mm 4mm 1mm}}
+.totals .grand{font-size:12px;font-weight:700;margin-top:1mm;padding-top:1mm;border-top:1px solid #000}
+.savings{text-align:center;font-size:8px;font-weight:600;margin:1mm 0;padding:1mm;border:1px dashed #000}
+.footer{text-align:center;padding-top:1.5mm;border-top:1px dashed #000;margin-top:1.5mm}
+.footer p{font-size:8px;color:#666;margin:0.3mm 0}
+.footer .thanks{font-size:9px;color:#000;font-weight:700}
+@media print{@page{size:80mm auto;margin:0}body{width:72mm;padding:1mm 1mm 2mm 1mm}}
 `;
 
 const a4PrintCSS = `
@@ -53,8 +55,8 @@ const a4PrintCSS = `
 body{font-family:'Inter','Arial',sans-serif;color:#1e1e1e;background:#fff;padding:24px}
 .invoice-box{max-width:600px;margin:0 auto}
 .header{text-align:center;padding-bottom:16px;border-bottom:2px solid #c73e5a}
-.logo{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 8px auto;border:2px solid #f3d5d5}
 .brand h1{font-size:22px;font-weight:700;color:#1e1e1e;font-family:'Cormorant Garamond',serif}
+.brand p{font-size:9px;color:#c73e5a;letter-spacing:2px;text-transform:uppercase}
 .brand p{font-size:10px;color:#c73e5a;letter-spacing:2px;text-transform:uppercase}
 .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:16px 0;font-size:12px}
 .meta span{color:#888}
@@ -90,10 +92,9 @@ export function printInvoiceFromData(invoice: InvoiceData, mode: "thermal" | "a4
 }
 
 function renderInvoiceHTML(invoice: InvoiceData): string {
-  const logoUrl = typeof window !== "undefined" ? new URL("/src/assets/logo.jpg", window.location.origin).href : "";
-  let html = `<div class="header"><img src="${logoUrl}" alt="Beauty Palace" class="logo"/><div class="brand"><h1>Beauty Palace</h1><p>Premium Cosmetics & Salon</p></div></div>`;
+  let html = `<div class="header"><div class="brand"><h1>BEAUTY PALACE</h1><p>Skin Care · Hair Care · Cosmetics · Self Grooming · Couple Makeup · Nail Art · Saree Draping & more</p></div></div>`;
   html += `<div class="meta"><div><span>Invoice:</span> <strong>${invoice.id}</strong></div><div><span>Date:</span> <strong>${invoice.date}</strong></div><div><span>Customer:</span> <strong>${invoice.customerName}</strong></div><div><span>Phone:</span> <strong>${invoice.customerPhone}</strong></div></div>`;
-  html += `<table><thead><tr><th>Service</th><th>Qty</th><th>Price</th><th style="text-align:right">Total</th></tr></thead><tbody>`;
+  html += `<table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th style="text-align:right">Total</th></tr></thead><tbody>`;
   invoice.items.forEach(item => {
     html += `<tr><td>${item.service_name}</td><td style="text-align:center">${item.quantity}</td><td style="text-align:right">₹${item.editedPrice.toLocaleString("en-IN")}</td><td style="text-align:right">₹${(item.editedPrice * item.quantity).toLocaleString("en-IN")}</td></tr>`;
   });
@@ -103,7 +104,7 @@ function renderInvoiceHTML(invoice: InvoiceData): string {
   if (invoice.gstEnabled) html += `<div><span class="label">GST (18%): </span><span>₹${invoice.gstAmount.toLocaleString("en-IN")}</span></div>`;
   html += `<div class="grand">Total: ₹${invoice.grandTotal.toLocaleString("en-IN")}</div></div>`;
   if (invoice.discountAmount > 0) html += `<div class="savings">🎉 You saved ₹${invoice.discountAmount.toLocaleString("en-IN")}!</div>`;
-  html += `<div class="footer"><p class="thanks">Thank you for visiting Beauty Palace ✨</p><p>www.exceptionz.in</p></div>`;
+  html += `<div class="footer"><p class="thanks">Thank you for visiting Beauty Palace ✨</p></div>`;
   return html;
 }
 
@@ -164,11 +165,10 @@ export default function InvoiceModal(props: Props) {
 
         <div ref={printRef} className="print-area">
           {/* Invoice Header */}
-          <div className="header flex flex-col items-center gap-3 border-b-2 border-primary pb-5">
-            <img src={logo} alt="Beauty Palace" className="logo h-20 w-20 rounded-full object-cover ring-2 ring-rose-gold shadow-glow" />
+          <div className="header flex flex-col items-center gap-2 border-b-2 border-primary pb-5">
             <div className="brand text-center">
-              <h1 className="font-display text-2xl font-bold">Beauty Palace</h1>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cherry">Premium Cosmetics & Salon</p>
+              <h1 className="font-display text-2xl font-bold tracking-wide">BEAUTY PALACE</h1>
+              <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-cherry">Skin Care · Hair Care · Cosmetics · Self Grooming · Couple Makeup · Nail Art · Saree Draping & more</p>
             </div>
           </div>
 
@@ -184,7 +184,7 @@ export default function InvoiceModal(props: Props) {
           <table className="mt-5 w-full text-sm">
             <thead>
               <tr className="gradient-cherry">
-                <th className="rounded-tl-lg py-2.5 pl-3 text-left text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Service</th>
+                <th className="rounded-tl-lg py-2.5 pl-3 text-left text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Product</th>
                 <th className="py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Qty</th>
                 <th className="py-2.5 text-right text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Price</th>
                 <th className="rounded-tr-lg py-2.5 pr-3 text-right text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Total</th>
@@ -225,7 +225,6 @@ export default function InvoiceModal(props: Props) {
           {/* Footer */}
           <div className="footer mt-6 border-t border-border pt-5 text-center">
             <p className="thanks font-display text-base font-semibold text-cherry">Thank you for visiting Beauty Palace ✨</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">www.exceptionz.in</p>
           </div>
         </div>
 

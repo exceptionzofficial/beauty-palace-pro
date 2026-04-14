@@ -75,8 +75,9 @@ export default function AdminPage() {
 function ServicesTab() {
   const [customServices, setCustomServices] = useState<Service[]>(getCustomServices());
   const [customCats, setCustomCats] = useState<string[]>(getCustomCategories());
+  const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(() => JSON.parse(localStorage.getItem("bp_hidden_defaults") || "[]"));
   const allCategories = useMemo(() => [...defaultCategories, ...customCats], [customCats]);
-  const allServices = useMemo(() => [...defaultServices, ...customServices], [customServices]);
+  const allServices = useMemo(() => [...defaultServices.filter(s => !hiddenDefaults.includes(s.id)), ...customServices], [customServices, hiddenDefaults]);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Service>>({});
   const [showAdd, setShowAdd] = useState(false);
@@ -138,6 +139,18 @@ function ServicesTab() {
     const updated = customServices.filter((s) => s.id !== id);
     setCustomServices(updated);
     saveCustomServices(updated);
+  };
+
+  const handleDeleteAny = (id: string) => {
+    if (!confirm("Delete this product?")) return;
+    const isCustom = customServices.find((s) => s.id === id);
+    if (isCustom) {
+      handleDelete(id);
+    } else {
+      const updated = [...hiddenDefaults, id];
+      setHiddenDefaults(updated);
+      localStorage.setItem("bp_hidden_defaults", JSON.stringify(updated));
+    }
   };
 
   const handleBulkDelete = () => {
@@ -302,12 +315,8 @@ function ServicesTab() {
                     <p className="text-xs text-muted-foreground">{s.category} · {s.duration} min</p>
                   </div>
                   <span className="rounded-lg bg-cherry-light px-2.5 py-1 text-sm font-bold tabular-nums text-cherry">₹{s.price.toLocaleString("en-IN")}</span>
-                  {/* Edit - available for ALL services */}
                   <button onClick={() => { setEditId(s.id); setEditData({}); }} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"><Edit2 size={14} /></button>
-                  {/* Delete - only custom services */}
-                  {isCustom && (
-                    <button onClick={() => handleDelete(s.id)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button>
-                  )}
+                  <button onClick={() => handleDeleteAny(s.id)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button>
                 </>
               )}
             </div>
@@ -375,7 +384,7 @@ function InvoicesTab() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="py-1.5 text-left font-semibold">Service</th>
+                        <th className="py-1.5 text-left font-semibold">Product</th>
                         <th className="py-1.5 text-center font-semibold">Qty</th>
                         <th className="py-1.5 text-right font-semibold">Price</th>
                         <th className="py-1.5 text-right font-semibold">Total</th>

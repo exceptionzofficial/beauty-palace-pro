@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import logo from "@/assets/logo.jpg";
+
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -18,13 +18,9 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-border/60 bg-card/90 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative">
-            <img src={logo} alt="Beauty Palace" className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/20 transition-all group-hover:ring-primary/40" />
-            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary ring-2 ring-card" />
-          </div>
           <div className="leading-tight">
-            <span className="font-display text-xl font-semibold text-foreground">Beauty Palace</span>
-            <span className="block text-[9px] font-medium uppercase tracking-[0.25em] text-rose-gold">Cosmetics & Salon</span>
+            <span className="font-display text-2xl font-bold tracking-wide text-foreground">BEAUTY PALACE</span>
+            <span className="block text-[8px] font-medium uppercase tracking-[0.18em] text-rose-gold">Skin Care, Hair Care, Cosmetics, Self Grooming, Couple Makeup, Nail Art, Saree Draping & more...</span>
           </div>
         </Link>
 
