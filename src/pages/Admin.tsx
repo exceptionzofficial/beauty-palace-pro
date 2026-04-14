@@ -384,7 +384,7 @@ function InvoicesTab() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="py-1.5 text-left font-semibold">Service</th>
+                        <th className="py-1.5 text-left font-semibold">Product</th>
                         <th className="py-1.5 text-center font-semibold">Qty</th>
                         <th className="py-1.5 text-right font-semibold">Price</th>
                         <th className="py-1.5 text-right font-semibold">Total</th>

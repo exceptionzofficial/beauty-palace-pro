@@ -20,7 +20,8 @@ export default function Billing() {
 
   const allServices = useMemo(() => {
     const custom = getCustomServices();
-    return [...services, ...custom];
+    const hidden: string[] = JSON.parse(localStorage.getItem("bp_hidden_defaults") || "[]");
+    return [...services.filter(s => !hidden.includes(s.id)), ...custom];
   }, []);
 
   const categories = useMemo(() => [...defaultCategories, ...getCustomCategories()], []);
