@@ -141,8 +141,6 @@ function ServicesTab() {
     saveCustomServices(updated);
   };
 
-  const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(() => JSON.parse(localStorage.getItem("bp_hidden_defaults") || "[]"));
-
   const handleDeleteAny = (id: string) => {
     if (!confirm("Delete this product?")) return;
     const isCustom = customServices.find((s) => s.id === id);
