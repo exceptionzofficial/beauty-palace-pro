@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { services, categories, CartItem, Service } from "@/data/services";
-import { getCustomServices } from "@/lib/store";
+import { services, categories as defaultCategories, CartItem, Service } from "@/data/services";
+import { getCustomServices, getCustomCategories } from "@/lib/store";
 import { Search, Plus, Minus, Trash2, ShoppingCart, Sparkles } from "lucide-react";
 import InvoiceModal from "@/components/InvoiceModal";
 
@@ -22,6 +22,8 @@ export default function Billing() {
     const custom = getCustomServices();
     return [...services, ...custom];
   }, []);
+
+  const categories = useMemo(() => [...defaultCategories, ...getCustomCategories()], []);
 
   const filtered = useMemo(() => {
     let list = allServices;

@@ -3,6 +3,7 @@ import { Booking, InvoiceData, Service } from "@/data/services";
 const BOOKINGS_KEY = "bp_bookings";
 const INVOICES_KEY = "bp_invoices";
 const SERVICES_KEY = "bp_custom_services";
+const CATEGORIES_KEY = "bp_custom_categories";
 const ADMIN_PIN = "1234";
 
 export function getBookings(): Booking[] {
@@ -31,6 +32,14 @@ export function getCustomServices(): Service[] {
 
 export function saveCustomServices(services: Service[]) {
   localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
+}
+
+export function getCustomCategories(): string[] {
+  return JSON.parse(localStorage.getItem(CATEGORIES_KEY) || "[]");
+}
+
+export function saveCustomCategories(categories: string[]) {
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
 }
 
 export function verifyAdmin(pin: string): boolean {

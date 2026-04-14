@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { services as defaultServices, categories, Service } from "@/data/services";
-import { verifyAdmin, getBookings, getInvoices, getCustomServices, saveCustomServices, generateWhatsAppLink } from "@/lib/store";
-import { Lock, Plus, Trash2, Edit2, Save, FileText, Calendar, Shield, Upload, MessageCircle } from "lucide-react";
+import { services as defaultServices, categories as defaultCategories, Service } from "@/data/services";
+import { verifyAdmin, getBookings, getInvoices, getCustomServices, saveCustomServices, getCustomCategories, saveCustomCategories, generateWhatsAppLink } from "@/lib/store";
+import { printInvoiceFromData } from "@/components/InvoiceModal";
+import { Lock, Plus, Trash2, Edit2, Save, FileText, Calendar, Shield, Upload, MessageCircle, Printer, Eye, X, Tag, CheckSquare } from "lucide-react";
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
@@ -49,7 +50,6 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="mb-5 flex gap-1 rounded-xl bg-card border border-border p-1 shadow-sm">
           {(["services", "invoices", "bookings"] as const).map((t) => (
             <button
@@ -74,12 +74,18 @@ export default function AdminPage() {
 
 function ServicesTab() {
   const [customServices, setCustomServices] = useState<Service[]>(getCustomServices());
+  const [customCats, setCustomCats] = useState<string[]>(getCustomCategories());
+  const allCategories = useMemo(() => [...defaultCategories, ...customCats], [customCats]);
   const allServices = useMemo(() => [...defaultServices, ...customServices], [customServices]);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Service>>({});
   const [showAdd, setShowAdd] = useState(false);
-  const [newService, setNewService] = useState<Partial<Service>>({ category: categories[0], price: 0, duration: 30 });
+  const [showAddCat, setShowAddCat] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newService, setNewService] = useState<Partial<Service>>({ category: allCategories[0], price: 0, duration: 30 });
   const [filterCat, setFilterCat] = useState("All");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
 
   const displayed = filterCat === "All" ? allServices : allServices.filter((s) => s.category === filterCat);
 
@@ -87,7 +93,7 @@ function ServicesTab() {
     if (!newService.service_name?.trim()) return;
     const svc: Service = {
       id: `custom-${Date.now()}`,
-      category: newService.category || categories[0],
+      category: newService.category || allCategories[0],
       service_name: newService.service_name || "",
       description: newService.description || "",
       price: newService.price || 0,
@@ -97,12 +103,30 @@ function ServicesTab() {
     setCustomServices(updated);
     saveCustomServices(updated);
     setShowAdd(false);
-    setNewService({ category: categories[0], price: 0, duration: 30 });
+    setNewService({ category: allCategories[0], price: 0, duration: 30 });
+  };
+
+  const handleAddCategory = () => {
+    const name = newCatName.trim();
+    if (!name || allCategories.includes(name)) return;
+    const updated = [...customCats, name];
+    setCustomCats(updated);
+    saveCustomCategories(updated);
+    setNewCatName("");
+    setShowAddCat(false);
   };
 
   const handleSaveEdit = (id: string) => {
-    const isCustom = customServices.find((s) => s.id === id);
-    if (isCustom) {
+    const isDefault = defaultServices.find((s) => s.id === id);
+    if (isDefault) {
+      // Save default service edits as a custom override
+      const override: Service = { ...isDefault, ...editData, id: `edit-${id}` };
+      // Remove old override if exists
+      const filtered = customServices.filter((s) => s.id !== `edit-${id}`);
+      const updated = [...filtered, override];
+      setCustomServices(updated);
+      saveCustomServices(updated);
+    } else {
       const updated = customServices.map((s) => (s.id === id ? { ...s, ...editData } : s));
       setCustomServices(updated);
       saveCustomServices(updated);
@@ -114,6 +138,36 @@ function ServicesTab() {
     const updated = customServices.filter((s) => s.id !== id);
     setCustomServices(updated);
     saveCustomServices(updated);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected services?`)) return;
+    const updated = customServices.filter((s) => !selectedIds.has(s.id));
+    setCustomServices(updated);
+    saveCustomServices(updated);
+    setSelectedIds(new Set());
+    setBulkMode(false);
+  };
+
+  const handleClearAll = () => {
+    if (!confirm("Delete ALL custom services? This cannot be undone.")) return;
+    setCustomServices([]);
+    saveCustomServices([]);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllCustom = () => {
+    const customIds = displayed.filter((s) => !!customServices.find((cs) => cs.id === s.id)).map((s) => s.id);
+    setSelectedIds(new Set(customIds));
   };
 
   const handleBulkUpload = () => {
@@ -150,20 +204,52 @@ function ServicesTab() {
 
   return (
     <div>
+      {/* Action bar */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}
           className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium shadow-sm">
           <option value="All">All ({allServices.length})</option>
-          {categories.map((c) => <option key={c} value={c}>{c} ({allServices.filter((s) => s.category === c).length})</option>)}
+          {allCategories.map((c) => <option key={c} value={c}>{c} ({allServices.filter((s) => s.category === c).length})</option>)}
         </select>
         <button onClick={() => setShowAdd(!showAdd)} className="flex items-center gap-1.5 gradient-cherry rounded-xl px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow">
           <Plus size={14} /> Add Service
         </button>
+        <button onClick={() => setShowAddCat(!showAddCat)} className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm">
+          <Tag size={14} /> Add Category
+        </button>
         <button onClick={handleBulkUpload} className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm">
           <Upload size={14} /> Bulk Upload
         </button>
+        <button onClick={() => setBulkMode(!bulkMode)} className={`flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-medium shadow-sm ${bulkMode ? "border-cherry bg-cherry-light text-cherry" : "border-border bg-card"}`}>
+          <CheckSquare size={14} /> Bulk Select
+        </button>
       </div>
 
+      {/* Bulk actions */}
+      {bulkMode && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-cherry/30 bg-cherry-light p-3 animate-fade-up">
+          <span className="text-sm font-medium text-cherry">{selectedIds.size} selected</span>
+          <button onClick={selectAllCustom} className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium">Select All Custom</button>
+          <button onClick={handleBulkDelete} disabled={selectedIds.size === 0} className="flex items-center gap-1 rounded-lg bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground disabled:opacity-40">
+            <Trash2 size={12} /> Delete Selected
+          </button>
+          <button onClick={handleClearAll} className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-semibold text-destructive">
+            <Trash2 size={12} /> Clear All Custom
+          </button>
+        </div>
+      )}
+
+      {/* Add category */}
+      {showAddCat && (
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border bg-card p-4 shadow-glow animate-fade-up">
+          <Tag size={16} className="text-cherry" />
+          <input placeholder="New Category Name" value={newCatName} onChange={(e) => setNewCatName(e.target.value)}
+            className="flex-1 rounded-lg border border-border bg-cream px-3 py-2 text-sm" />
+          <button onClick={handleAddCategory} className="gradient-cherry rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow">Add</button>
+        </div>
+      )}
+
+      {/* Add service */}
       {showAdd && (
         <div className="mb-4 rounded-2xl border border-border bg-card p-5 shadow-glow animate-fade-up">
           <h3 className="mb-3 font-display text-base font-semibold">New Service</h3>
@@ -172,7 +258,7 @@ function ServicesTab() {
               className="rounded-lg border border-border bg-cream px-3 py-2.5 text-sm" />
             <select value={newService.category} onChange={(e) => setNewService({ ...newService, category: e.target.value })}
               className="rounded-lg border border-border bg-cream px-3 py-2.5 text-sm">
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              {allCategories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <input type="number" placeholder="Price (₹)" value={newService.price || ""} onChange={(e) => setNewService({ ...newService, price: Number(e.target.value) })}
               className="rounded-lg border border-border bg-cream px-3 py-2.5 text-sm" />
@@ -185,18 +271,29 @@ function ServicesTab() {
         </div>
       )}
 
+      {/* Service list */}
       <div className="space-y-1.5">
         {displayed.map((s) => {
           const isCustom = !!customServices.find((cs) => cs.id === s.id);
           return (
             <div key={s.id} className="flex items-center gap-2 rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-glow">
+              {bulkMode && isCustom && (
+                <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} className="h-4 w-4 accent-primary shrink-0" />
+              )}
               {editId === s.id ? (
                 <div className="flex flex-1 flex-wrap gap-2">
                   <input value={editData.service_name ?? s.service_name} onChange={(e) => setEditData({ ...editData, service_name: e.target.value })}
-                    className="flex-1 rounded-lg border border-border bg-cream px-3 py-1.5 text-sm" />
+                    className="flex-1 rounded-lg border border-border bg-cream px-3 py-1.5 text-sm" placeholder="Name" />
                   <input type="number" value={editData.price ?? s.price} onChange={(e) => setEditData({ ...editData, price: Number(e.target.value) })}
-                    className="w-24 rounded-lg border border-border bg-cream px-3 py-1.5 text-sm" />
+                    className="w-24 rounded-lg border border-border bg-cream px-3 py-1.5 text-sm" placeholder="Price" />
+                  <input type="number" value={editData.duration ?? s.duration} onChange={(e) => setEditData({ ...editData, duration: Number(e.target.value) })}
+                    className="w-20 rounded-lg border border-border bg-cream px-3 py-1.5 text-sm" placeholder="Min" />
+                  <select value={editData.category ?? s.category} onChange={(e) => setEditData({ ...editData, category: e.target.value })}
+                    className="rounded-lg border border-border bg-cream px-3 py-1.5 text-sm">
+                    {allCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
                   <button onClick={() => handleSaveEdit(s.id)} className="rounded-lg bg-green-100 p-2 text-green-700 hover:bg-green-200"><Save size={14} /></button>
+                  <button onClick={() => setEditId(null)} className="rounded-lg bg-accent p-2 text-muted-foreground hover:text-foreground"><X size={14} /></button>
                 </div>
               ) : (
                 <>
@@ -205,11 +302,11 @@ function ServicesTab() {
                     <p className="text-xs text-muted-foreground">{s.category} · {s.duration} min</p>
                   </div>
                   <span className="rounded-lg bg-cherry-light px-2.5 py-1 text-sm font-bold tabular-nums text-cherry">₹{s.price.toLocaleString("en-IN")}</span>
+                  {/* Edit - available for ALL services */}
+                  <button onClick={() => { setEditId(s.id); setEditData({}); }} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"><Edit2 size={14} /></button>
+                  {/* Delete - only custom services */}
                   {isCustom && (
-                    <>
-                      <button onClick={() => { setEditId(s.id); setEditData({}); }} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"><Edit2 size={14} /></button>
-                      <button onClick={() => handleDelete(s.id)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button>
-                    </>
+                    <button onClick={() => handleDelete(s.id)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button>
                   )}
                 </>
               )}
@@ -223,6 +320,8 @@ function ServicesTab() {
 
 function InvoicesTab() {
   const invoices = getInvoices().reverse();
+  const [viewInv, setViewInv] = useState<any>(null);
+
   return (
     <div>
       {invoices.length === 0 ? (
@@ -249,14 +348,58 @@ function InvoicesTab() {
                   <p className="text-xs text-muted-foreground">{inv.items.length} services</p>
                 </div>
               </div>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button onClick={() => setViewInv(viewInv?.id === inv.id ? null : inv)}
+                  className="flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent">
+                  <Eye size={12} /> {viewInv?.id === inv.id ? "Hide" : "View"}
+                </button>
+                <button onClick={() => printInvoiceFromData(inv, "thermal")}
+                  className="flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent">
+                  <Printer size={12} /> Thermal Print
+                </button>
+                <button onClick={() => printInvoiceFromData(inv, "a4")}
+                  className="flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-accent">
+                  <Printer size={12} /> A4 Print
+                </button>
                 <button
                   onClick={() => window.open(generateWhatsAppLink(inv.customerPhone, inv), "_blank")}
                   className="flex items-center gap-1 rounded-lg bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-200"
                 >
-                  <MessageCircle size={12} /> Resend WhatsApp
+                  <MessageCircle size={12} /> WhatsApp
                 </button>
               </div>
+
+              {/* Inline invoice details */}
+              {viewInv?.id === inv.id && (
+                <div className="mt-3 rounded-lg border border-border bg-cream p-3 animate-fade-up">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="py-1.5 text-left font-semibold">Service</th>
+                        <th className="py-1.5 text-center font-semibold">Qty</th>
+                        <th className="py-1.5 text-right font-semibold">Price</th>
+                        <th className="py-1.5 text-right font-semibold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inv.items.map((item) => (
+                        <tr key={item.id} className="border-b border-border/50">
+                          <td className="py-1.5">{item.service_name}</td>
+                          <td className="py-1.5 text-center">{item.quantity}</td>
+                          <td className="py-1.5 text-right">₹{item.editedPrice.toLocaleString("en-IN")}</td>
+                          <td className="py-1.5 text-right font-semibold">₹{(item.editedPrice * item.quantity).toLocaleString("en-IN")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-2 space-y-0.5 text-right text-xs">
+                    <div><span className="text-muted-foreground">Subtotal:</span> ₹{inv.subtotal.toLocaleString("en-IN")}</div>
+                    {inv.discountAmount > 0 && <div className="text-green-700">Discount: -₹{inv.discountAmount.toLocaleString("en-IN")}</div>}
+                    {inv.gstEnabled && <div><span className="text-muted-foreground">GST:</span> ₹{inv.gstAmount.toLocaleString("en-IN")}</div>}
+                    <div className="text-sm font-bold text-cherry">Total: ₹{inv.grandTotal.toLocaleString("en-IN")}</div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
