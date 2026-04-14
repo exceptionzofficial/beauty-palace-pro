@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { CartItem, InvoiceData } from "@/data/services";
 import { saveInvoice, generateWhatsAppLink } from "@/lib/store";
 import { X, Printer, Download, MessageCircle, Check } from "lucide-react";
-import logo from "@/assets/logo.jpg";
 
 interface Props {
   customerName: string;
@@ -166,11 +165,10 @@ export default function InvoiceModal(props: Props) {
 
         <div ref={printRef} className="print-area">
           {/* Invoice Header */}
-          <div className="header flex flex-col items-center gap-3 border-b-2 border-primary pb-5">
-            <img src={logo} alt="Beauty Palace" className="logo h-20 w-20 rounded-full object-cover ring-2 ring-rose-gold shadow-glow" />
+          <div className="header flex flex-col items-center gap-2 border-b-2 border-primary pb-5">
             <div className="brand text-center">
-              <h1 className="font-display text-2xl font-bold">Beauty Palace</h1>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cherry">Premium Cosmetics & Salon</p>
+              <h1 className="font-display text-2xl font-bold tracking-wide">BEAUTY PALACE</h1>
+              <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-cherry">Skin Care · Hair Care · Cosmetics · Self Grooming · Couple Makeup · Nail Art · Saree Draping & more</p>
             </div>
           </div>
 
@@ -186,7 +184,7 @@ export default function InvoiceModal(props: Props) {
           <table className="mt-5 w-full text-sm">
             <thead>
               <tr className="gradient-cherry">
-                <th className="rounded-tl-lg py-2.5 pl-3 text-left text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Service</th>
+                <th className="rounded-tl-lg py-2.5 pl-3 text-left text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Product</th>
                 <th className="py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Qty</th>
                 <th className="py-2.5 text-right text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Price</th>
                 <th className="rounded-tr-lg py-2.5 pr-3 text-right text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Total</th>
@@ -227,7 +225,6 @@ export default function InvoiceModal(props: Props) {
           {/* Footer */}
           <div className="footer mt-6 border-t border-border pt-5 text-center">
             <p className="thanks font-display text-base font-semibold text-cherry">Thank you for visiting Beauty Palace ✨</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">www.exceptionz.in</p>
           </div>
         </div>
 
